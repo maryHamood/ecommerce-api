@@ -1,0 +1,20 @@
+:root { font-family: system-ui, sans-serif; color: #172033; background: #eef2f8; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px; }
+main { max-width: 1000px; margin: auto; }
+h1 { margin-bottom: 8px; }
+section { background: white; border: 1px solid #d7deea; border-radius: 10px; margin: 20px 0; padding: 20px; }
+h2 { margin-top: 0; }
+form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+label { display: grid; gap: 6px; }
+input, select, button { font: inherit; padding: 10px; border-radius: 6px; border: 1px solid #9daac0; }
+button { cursor: pointer; background: #1647a6; color: white; }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #e2aa15; outline-offset: 2px; }
+table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+th, td { padding: 10px; border-bottom: 1px solid #d7deea; text-align: left; overflow-wrap: anywhere; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #172033; color: white; border-radius: 8px; padding: 16px; }
+pre.error { background: #831b2d; }
+li { padding: 8px 0; overflow-wrap: anywhere; }
+[hidden] { display: none !important; }
+@media (max-width: 600px) { body { padding: 12px; } section { padding: 12px; } form, label, input { width: 100%; } th, td { padding: 6px; } }

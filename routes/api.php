@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
@@ -20,6 +21,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::get('/notifications', [NotificationController::class, 'index']);
 
 
         Route::get('/products', [ProductController::class, 'index']);
@@ -44,7 +46,7 @@ Route::prefix('v1')->group(function () {
 
 
         Route::get('/orders', [OrderController::class, 'index']);
-        Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
         Route::post('/categories', [CategoryController::class, 'store']);
     });
 });
