@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Store API test pages</title>
+    <link rel="stylesheet" href="/test-ui/app.css">
+    <script src="/test-ui/app.js" defer></script>
+</head>
+<body>
+<main>
+    <h1>Store API test pages</h1>
+    <p>Open a new tab from the address bar for each account. Each tab has its own session.</p>
+    <section aria-labelledby="session-title">
+        <h2 id="session-title">Login</h2>
+        <form id="login-form">
+            <label>Phone <input id="phone" type="tel" autocomplete="username" required></label>
+            <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
+            <button type="submit">Login</button>
+        </form>
+        <p id="identity">Logged out</p>
+        <button id="logout" type="button" hidden>Logout</button>
+    </section>
+    <pre id="feedback" role="status" aria-live="polite">Ready.</pre>
+    <div id="authenticated" hidden>
+        <section aria-labelledby="products-title">
+            <h2 id="products-title">Products</h2>
+            <button id="products-refresh" type="button">Refresh products</button>
+            <table><thead><tr><th>ID</th><th>Name</th><th>Price</th></tr></thead><tbody id="products"></tbody></table>
+            <p><button id="products-previous" type="button" disabled>Previous</button>
+                <span id="products-page"></span>
+                <button id="products-next" type="button" disabled>Next</button></p>
+        </section>
+        <div id="customer" hidden>
+            <section aria-labelledby="create-title">
+                <h2 id="create-title">Create order</h2>
+                <form id="order-form">
+                    <label>Product ID <input id="product-id" type="number" min="1" step="1" required></label>
+                    <label>Quantity <input id="quantity" type="number" min="1" step="1" value="1" required></label>
+                    <button type="submit">Create order</button>
+                </form>
+            </section>
+            <section aria-labelledby="orders-title">
+                <h2 id="orders-title">My orders</h2>
+                <button id="orders-refresh" type="button">Refresh my orders</button>
+                <table><thead><tr><th>ID</th><th>Total</th><th>Status</th></tr></thead><tbody id="orders"></tbody></table>
+            </section>
+        </div>
+        <section id="admin" aria-labelledby="admin-title" hidden>
+            <h2 id="admin-title">Admin: change order status</h2>
+            <form id="status-form">
+                <label>Order ID <input id="admin-order-id" type="number" min="1" step="1" required></label>
+                <label>Status <select id="status">
+                    <option value="pending">pending</option>
+                    <option value="confirmed">confirmed</option>
+                    <option value="shipped">shipped</option>
+                    <option value="delivered">delivered</option>
+                    <option value="cancelled">cancelled</option>
+                </select></label>
+                <button type="submit">Change status</button>
+            </form>
+            <button id="admin-refresh" type="button">Refresh all orders</button>
+            <table><thead><tr><th>ID</th><th>Owner</th><th>Total</th><th>Status</th></tr></thead><tbody id="admin-orders"></tbody></table>
+            <p><button id="admin-previous" type="button" disabled>Previous</button>
+                <span id="admin-page"></span>
+                <button id="admin-next" type="button" disabled>Next</button></p>
+        </section>
+        <section aria-labelledby="notifications-title">
+            <h2 id="notifications-title">My notifications</h2>
+            <button id="notifications-refresh" type="button">Refresh notifications</button>
+            <ul id="notifications"></ul>
+        </section>
+    </div>
+</main>
+</body>
+</html>

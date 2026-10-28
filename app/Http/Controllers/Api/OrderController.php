@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Services\Notifications\NotificationSender;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -77,9 +78,21 @@ class OrderController extends Controller
     }
 
 
-    public function updateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, Order $order, NotificationSender $notifications): JsonResponse
     {
-        $order->update(['status' => $request->validated('status')]);
-        return ApiResponse::success($order, 'Order status updated successfully.');
+        return DB::transaction(function () use ($request, $order, $notifications) {
+            $order = Order::whereKey($order->getKey())->lockForUpdate()->firstOrFail();
+            $status = $request->validated('status');
+
+            if ($order->status !== $status) {
+                $order->update(['status' => $status]);
+                $notifications->send(
+                    $order->user_id,
+                    "Your order #{$order->id} is now {$status}."
+                );
+            }
+
+            return ApiResponse::success($order, 'Order status updated successfully.');
+        });
     }
 }
