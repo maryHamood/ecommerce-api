@@ -13,11 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    // ═══════════════════════════════════════════════════════
-    // مسارات الزبون (Customer)
-    // ═══════════════════════════════════════════════════════
 
-    // إنشاء طلب جديد (للزبون)
     public function store(StoreOrderRequest $request): JsonResponse
     {
         try {
@@ -25,11 +21,11 @@ class OrderController extends Controller
                 $total = 0;
                 $orderItems = [];
 
-                // 1. حساب الإجمالي وتجهيز عناصر الطلب
+
                 foreach ($request->items as $item) {
                     $product = Product::findOrFail($item['product_id']);
 
-                    // (ملاحظة: في المتطلب الثاني سنستبدل هذا بـ gRPC للتحقق من المخزون)
+
                     if ($product->amount < $item['quantity']) {
                         return ApiResponse::error("Product {$product->name} is out of stock.", null, 400);
                     }
@@ -37,13 +33,13 @@ class OrderController extends Controller
                     $total += $product->price * $item['quantity'];
                     $orderItems[] = [
                         'product_id' => $product->id,
-                        'quantity'   => $item['quantity'],
-                        'price'      => $product->price,
+                        'quantity' => $item['quantity'],
+                        'price' => $product->price,
                     ];
                 }
 
                 $order = auth('api')->user()->orders()->create([
-                    'total'  => $total,
+                    'total' => $total,
                     'status' => 'pending',
                 ]);
 
@@ -68,9 +64,8 @@ class OrderController extends Controller
     public function show(Order $order): JsonResponse
     {
 
-        if ($order->user_id !== auth('api')->id()) {
-            return ApiResponse::error('Forbidden. You do not own this order.', null, 403);
-        }
+        $this->authorize('view', $order);
+
         return ApiResponse::success($order->load('items.product'), 'Order details retrieved.');
     }
 
