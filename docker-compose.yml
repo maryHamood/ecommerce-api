@@ -10,26 +10,36 @@ services:
     volumes:
       - .:/var/www/html
     depends_on:
-      - db
-    extra_hosts:
-      - "db:172.19.0.2"
+      db:
+        condition: service_healthy
+      inventory-service:
+        condition: service_started
+
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     networks:
       - ecommerce_network
 
   db:
     image: mysql:8.0
+    command: --skip-name-resolve
     container_name: ecommerce_db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ecommerce_db
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
     networks:
       - ecommerce_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -40,9 +50,63 @@ services:
     environment:
       PMA_HOST: db
       PMA_USER: root
-      PMA_PASSWORD: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: inventory-service/Dockerfile
+    container_name: inventory_app
+    restart: unless-stopped
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=inventory-db
+      - DB_USER=root
+      - DB_PASS=${INVENTORY_DB_PASSWORD}
+      - DB_NAME=inventory_db
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    networks:
+      - ecommerce_network
+
+  inventory-db:
+    image: mysql:8.0
+    command: --skip-name-resolve
+    container_name: inventory_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: inventory_db
+      MYSQL_ROOT_PASSWORD: ${INVENTORY_DB_PASSWORD}
+    volumes:
+      - inventory_data:/var/lib/mysql
+    networks:
+      - ecommerce_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${INVENTORY_DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  inventory-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: inventory_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: inventory-db
+      PMA_USER: root
+      PMA_PASSWORD: ${INVENTORY_DB_PASSWORD}
+    depends_on:
+      - inventory-db
     networks:
       - ecommerce_network
 
@@ -52,3 +116,4 @@ networks:
 
 volumes:
   db_data:
+  inventory_data:

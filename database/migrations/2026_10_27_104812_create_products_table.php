@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('name')->unique();;
             $table->string('photo')->nullable();
             $table->decimal('price', 10, 2);
-            $table->integer('amount')->default(0);
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->timestamps();
         });

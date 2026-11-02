@@ -7,14 +7,14 @@ class StoreProductRequest extends FormRequest
     public function authorize(): bool { return true; }
 
 
-        public function rules(): array
+    public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:products,name'],
-            'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
-            'amount'      => ['required', 'integer', 'min:0'],
-            'photo'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
-            'category_id' => ['required', 'exists:categories,id'],
+            'name'          => ['required', 'string', 'max:255', 'unique:products,name'],
+            'price'         => ['required', 'numeric', 'min:0', 'max:99999999.99'],
+            'initial_stock' => ['required', 'integer', 'min:0'],
+            'photo'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'category_id'   => ['required', 'exists:categories,id'],
         ];
     }
 
