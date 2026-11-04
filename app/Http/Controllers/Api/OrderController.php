@@ -8,6 +8,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Services\InventoryService;
+use App\Services\Notifications\NotificationSender;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -15,7 +16,11 @@ use Throwable;
 
 class OrderController extends Controller
 {
-    public function __construct(private InventoryService $inventoryService) {}
+    public function __construct(
+        private InventoryService $inventoryService,
+        private NotificationSender $notificationSender,
+    ) {
+    }
 
     public function store(StoreOrderRequest $request): JsonResponse
     {
@@ -26,13 +31,13 @@ class OrderController extends Controller
             $total += $product->price * $item['quantity'];
             $orderItems[] = [
                 'product_id' => $product->id,
-                'quantity'   => $item['quantity'],
-                'price'      => $product->price,
+                'quantity' => $item['quantity'],
+                'price' => $product->price,
             ];
         }
 
         $order = auth('api')->user()->orders()->create([
-            'total'  => $total,
+            'total' => $total,
             'status' => 'pending',
         ]);
 
@@ -50,8 +55,7 @@ class OrderController extends Controller
 
         try {
             $order->items()->createMany($orderItems);
-            $order->update(['status' => 'confirmed']);
-            return ApiResponse::success($order->load('items'), 'Order created and confirmed successfully.', 201);
+            return ApiResponse::success($order->load('items'), 'Order created successfully.', 201);
         } catch (Exception $e) {
             $this->inventoryService->releaseStock($order->id);
             $order->delete();
@@ -79,7 +83,27 @@ class OrderController extends Controller
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
     {
-        $order->update(['status' => $request->validated('status')]);
+        $newStatus = $request->validated('status');
+
+        if ($order->status === $newStatus) {
+            return ApiResponse::success($order, 'Order status is already set to ' . $newStatus . '.');
+        }
+
+        try {
+            DB::transaction(function () use ($order, $newStatus) {
+                $order->update(['status' => $newStatus]);
+
+                $this->notificationSender->send(
+                    (int) $order->user_id,
+                    'Your order #' . $order->id . ' is now ' . $newStatus . '.'
+                );
+            });
+        } catch (Throwable $e) {
+            return ApiResponse::error('Server Error', null, 500);
+        }
+
+        $order->refresh();
+
         return ApiResponse::success($order, 'Order status updated successfully.');
     }
 }
