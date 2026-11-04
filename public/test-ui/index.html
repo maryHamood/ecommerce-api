@@ -10,63 +10,161 @@
 <body>
 <main>
     <h1>Store API test pages</h1>
-    <p>Open a new tab from the address bar for each account. Each tab has its own session.</p>
-    <section aria-labelledby="session-title">
-        <h2 id="session-title">Login</h2>
-        <form id="login-form">
-            <label>Phone <input id="phone" type="tel" autocomplete="username" required></label>
-            <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
-            <button type="submit">Login</button>
-        </form>
-        <p id="identity">Logged out</p>
-        <button id="logout" type="button" hidden>Logout</button>
-    </section>
+    <p>Each browser tab has its own session, so open one tab per account.</p>
+    <p id="identity">Logged out</p>
+    <button id="logout" type="button" hidden>Logout</button>
     <pre id="feedback" role="status" aria-live="polite">Ready.</pre>
+
+    <div id="guest">
+        <section>
+            <h2>Login</h2>
+            <form id="login-form">
+                <label>Phone <input id="phone" type="tel" autocomplete="username" required></label>
+                <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
+                <button type="submit">Login</button>
+            </form>
+        </section>
+        <section>
+            <h2>Register</h2>
+            <form id="register-form">
+                <label>Name <input id="register-name" maxlength="100" required></label>
+                <label>Phone <input id="register-phone" type="tel" placeholder="+963912345678" required></label>
+                <label>Password <input id="register-password" type="password" minlength="8" autocomplete="new-password" required></label>
+                <label>Confirm password <input id="register-confirm" type="password" minlength="8" autocomplete="new-password" required></label>
+                <button type="submit">Register and send OTP</button>
+            </form>
+        </section>
+        <section id="otp-section" hidden>
+            <h2>Verify OTP</h2>
+            <p id="otp-info"></p>
+            <form id="otp-form">
+                <label>OTP code <input id="otp-code" inputmode="numeric" maxlength="6" required></label>
+                <button type="submit">Verify and create account</button>
+                <button id="otp-resend" type="button">Resend OTP</button>
+            </form>
+        </section>
+    </div>
+
     <div id="authenticated" hidden>
-        <section aria-labelledby="products-title">
-            <h2 id="products-title">Products</h2>
+        <section>
+            <h2>Products</h2>
+            <label>Category
+                <select id="category-filter"><option value="">All categories</option></select>
+            </label>
             <button id="products-refresh" type="button">Refresh products</button>
-            <table><thead><tr><th>ID</th><th>Name</th><th>Price</th></tr></thead><tbody id="products"></tbody></table>
+            <table>
+                <thead><tr><th>ID</th><th>Photo</th><th>Name</th><th>Price</th><th>Category</th><th>Actions</th></tr></thead>
+                <tbody id="products"></tbody>
+            </table>
             <p><button id="products-previous" type="button" disabled>Previous</button>
                 <span id="products-page"></span>
                 <button id="products-next" type="button" disabled>Next</button></p>
         </section>
+
+        <section id="product-details-section" hidden>
+            <h2>Product details</h2>
+            <pre id="product-details"></pre>
+            <img id="product-photo" class="photo" alt="Product" hidden>
+        </section>
+
         <div id="customer" hidden>
-            <section aria-labelledby="create-title">
-                <h2 id="create-title">Create order</h2>
-                <form id="order-form">
-                    <label>Product ID <input id="product-id" type="number" min="1" step="1" required></label>
-                    <label>Quantity <input id="quantity" type="number" min="1" step="1" value="1" required></label>
-                    <button type="submit">Create order</button>
-                </form>
+            <section>
+                <h2>Create order</h2>
+                <p>Use "Add to order" in the products table. One order can hold several products.</p>
+                <table>
+                    <thead><tr><th>Product ID</th><th>Name</th><th>Quantity</th><th></th></tr></thead>
+                    <tbody id="draft"></tbody>
+                </table>
+                <button id="order-submit" type="button">Create order</button>
             </section>
-            <section aria-labelledby="orders-title">
-                <h2 id="orders-title">My orders</h2>
+
+            <section>
+                <h2>My orders</h2>
                 <button id="orders-refresh" type="button">Refresh my orders</button>
-                <table><thead><tr><th>ID</th><th>Total</th><th>Status</th></tr></thead><tbody id="orders"></tbody></table>
+                <table>
+                    <thead><tr><th>ID</th><th>Total</th><th>Status</th><th>Items</th><th></th></tr></thead>
+                    <tbody id="orders"></tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>View order by ID</h2>
+                <p>Try the ID of an order owned by another customer: the API must refuse it (403).</p>
+                <form id="order-view-form">
+                    <label>Order ID <input id="order-view-id" type="number" min="1" step="1" required></label>
+                    <button type="submit">View order</button>
+                </form>
+                <pre id="order-details" hidden></pre>
+            </section>
+
+            <section>
+                <h2>Permission test</h2>
+                <p>Calls admin endpoints as this customer. Both must be refused (403).</p>
+                <button id="test-admin-orders" type="button">List all orders</button>
+                <button id="test-admin-status" type="button">Change status of order 1</button>
+            </section>
+
+            <section>
+                <h2>Race condition test</h2>
+                <p>Sends several orders for the same product at the same moment. With the last piece in stock, exactly one must succeed.</p>
+                <form id="race-form">
+                    <label>Product ID <input id="race-product" type="number" min="1" step="1" required></label>
+                    <label>Quantity per order <input id="race-quantity" type="number" min="1" step="1" value="1" required></label>
+                    <label>Simultaneous orders <input id="race-count" type="number" min="2" max="50" step="1" value="10" required></label>
+                    <button type="submit">Send together</button>
+                </form>
+                <pre id="race-result" hidden></pre>
             </section>
         </div>
-        <section id="admin" aria-labelledby="admin-title" hidden>
-            <h2 id="admin-title">Admin: change order status</h2>
-            <form id="status-form">
-                <label>Order ID <input id="admin-order-id" type="number" min="1" step="1" required></label>
-                <label>Status <select id="status">
-                    <option value="pending">pending</option>
-                    <option value="confirmed">confirmed</option>
-                    <option value="shipped">shipped</option>
-                    <option value="delivered">delivered</option>
-                    <option value="cancelled">cancelled</option>
-                </select></label>
-                <button type="submit">Change status</button>
-            </form>
-            <button id="admin-refresh" type="button">Refresh all orders</button>
-            <table><thead><tr><th>ID</th><th>Owner</th><th>Total</th><th>Status</th></tr></thead><tbody id="admin-orders"></tbody></table>
-            <p><button id="admin-previous" type="button" disabled>Previous</button>
-                <span id="admin-page"></span>
-                <button id="admin-next" type="button" disabled>Next</button></p>
-        </section>
-        <section aria-labelledby="notifications-title">
-            <h2 id="notifications-title">My notifications</h2>
+
+        <div id="admin" hidden>
+            <section>
+                <h2>Add category</h2>
+                <form id="category-form">
+                    <label>Name <input id="category-name" maxlength="255" required></label>
+                    <button type="submit">Add category</button>
+                </form>
+            </section>
+
+            <section>
+                <h2>Add product</h2>
+                <form id="product-form">
+                    <label>Name <input id="product-name" maxlength="255" required></label>
+                    <label>Price <input id="product-price" type="number" min="0" step="0.01" required></label>
+                    <label>Initial stock <input id="product-stock" type="number" min="0" step="1" required></label>
+                    <label>Category <select id="product-category" required></select></label>
+                    <label>Photo <input id="product-file" type="file" accept="image/jpeg,image/png,image/gif,image/webp"></label>
+                    <button type="submit">Add product</button>
+                </form>
+            </section>
+
+            <section id="edit-section" hidden>
+                <h2>Edit product <span id="edit-id"></span></h2>
+                <form id="edit-form">
+                    <label>Name <input id="edit-name" maxlength="255" required></label>
+                    <label>Price <input id="edit-price" type="number" min="0" step="0.01" required></label>
+                    <label>Category <select id="edit-category" required></select></label>
+                    <label>New photo <input id="edit-file" type="file" accept="image/jpeg,image/png,image/gif,image/webp"></label>
+                    <button type="submit">Save</button>
+                    <button id="edit-cancel" type="button">Cancel</button>
+                </form>
+            </section>
+
+            <section>
+                <h2>All orders</h2>
+                <button id="admin-refresh" type="button">Refresh all orders</button>
+                <table>
+                    <thead><tr><th>ID</th><th>Owner</th><th>Total</th><th>Status</th><th>Items</th><th>Change status</th></tr></thead>
+                    <tbody id="admin-orders"></tbody>
+                </table>
+                <p><button id="admin-previous" type="button" disabled>Previous</button>
+                    <span id="admin-page"></span>
+                    <button id="admin-next" type="button" disabled>Next</button></p>
+            </section>
+        </div>
+
+        <section>
+            <h2>My notifications</h2>
             <button id="notifications-refresh" type="button">Refresh notifications</button>
             <ul id="notifications"></ul>
         </section>

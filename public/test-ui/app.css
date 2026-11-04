@@ -18,3 +18,5 @@ pre.error { background: #831b2d; }
 li { padding: 8px 0; overflow-wrap: anywhere; }
 [hidden] { display: none !important; }
 @media (max-width: 600px) { body { padding: 12px; } section { padding: 12px; } form, label, input { width: 100%; } th, td { padding: 6px; } }
+.thumb { width: 48px; height: 48px; object-fit: cover; }
+.photo { max-width: 240px; display: block; margin-top: .5rem; }
