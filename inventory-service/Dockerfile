@@ -2,7 +2,6 @@ FROM golang:1.23-alpine AS builder
 
 RUN apk add --no-cache protobuf protobuf-dev
 
-# تثبيت أدوات protoc بإصدارات متوافقة
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0
 
@@ -10,7 +9,6 @@ WORKDIR /app
 
 COPY inventory-service/go.mod ./
 
-# تثبيت المكتبات بإصدارات محددة ومستقرة (هذا هو السطر السحري)
 RUN go get google.golang.org/grpc@v1.62.1 && \
     go get google.golang.org/protobuf@v1.34.1 && \
     go get gorm.io/gorm@v1.25.9 && \

@@ -97,7 +97,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $phone    = $request->validated('phone');
+        $phone = $request->validated('phone');
         $password = $request->validated('password');
 
         $user = User::where('phone', $phone)->first();
@@ -125,7 +125,6 @@ class AuthController extends Controller
             'Logged in successfully.'
         );
     }
-
 
     public function resendOtp(ResendOtpRequest $request): JsonResponse
     {

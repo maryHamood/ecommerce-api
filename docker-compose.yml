@@ -14,10 +14,9 @@ services:
         condition: service_healthy
       inventory-service:
         condition: service_started
-
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+    extra_hosts:
+      - "db:172.25.0.10"
+      - "inventory-db:172.25.0.11"
     networks:
       - ecommerce_network
 
@@ -34,7 +33,8 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - ecommerce_network
+      ecommerce_network:
+        ipv4_address: 172.25.0.10
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
       interval: 5s
@@ -71,9 +71,6 @@ services:
       - DB_USER=root
       - DB_PASS=${INVENTORY_DB_PASSWORD}
       - DB_NAME=inventory_db
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     networks:
       - ecommerce_network
 
@@ -88,7 +85,8 @@ services:
     volumes:
       - inventory_data:/var/lib/mysql
     networks:
-      - ecommerce_network
+      ecommerce_network:
+        ipv4_address: 172.25.0.11
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${INVENTORY_DB_PASSWORD}"]
       interval: 5s
@@ -113,6 +111,9 @@ services:
 networks:
   ecommerce_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
 
 volumes:
   db_data:

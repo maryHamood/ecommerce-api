@@ -24,11 +24,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
 
 
-        Route::get('/products', [ProductController::class, 'index']);
-        Route::get('/products/{product}', [ProductController::class, 'show']);
+//        Route::get('/products', [ProductController::class, 'index']);
+//        Route::get('/products/{product}', [ProductController::class, 'show']);
         Route::get('/categories', [CategoryController::class, 'index']);
     });
-
+// داخل Route::prefix('v1')->group(function () { ... })
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{product}', [ProductController::class, 'show']);
     Route::middleware(['auth:api', 'role:customer'])->group(function () {
 
         Route::post('/orders', [OrderController::class, 'store']);
