@@ -51,4 +51,29 @@ Route::prefix('v1')->group(function () {
         Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
         Route::post('/categories', [CategoryController::class, 'store']);
     });
+
+//    Route::get('/test-queries', function () {
+//        \DB::enableQueryLog();
+//
+//
+//        $productsOld = \App\Models\Product::where('category_id', 1)->limit(10)->get();
+//        foreach ($productsOld as $product) {
+//            $categoryName = $product->category->name;
+//        }
+//        $oldQueries = count(\DB::getQueryLog());
+//
+//
+//        \DB::flushQueryLog();
+//        $productsNew = \App\Models\Product::with('category')->where('category_id', 1)->limit(10)->get();
+//        foreach ($productsNew as $product) {
+//            $categoryName = $product->category->name;
+//        }
+//        $newQueries = count(\DB::getQueryLog());
+//
+//        return response()->json([
+//            'old_queries' => $oldQueries,
+//            'new_queries' => $newQueries,
+//        ]);
+//    });
+
 });

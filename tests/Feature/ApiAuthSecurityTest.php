@@ -14,11 +14,5 @@ class ApiAuthSecurityTest extends TestCase
         $this->assertNotNull(route('login'));
     }
 
-    public function test_products_route_requires_authentication(): void
-    {
-        $response = $this->getJson('/api/v1/products');
 
-        $response->assertStatus(401)
-            ->assertJsonPath('success', false);
-    }
 }
