@@ -27,7 +27,7 @@ services:
 
   db:
     image: mysql:8.0
-    command: --skip-name-resolve
+    command: sh -c "chmod 644 /etc/mysql/conf.d/replication.cnf && mysqld --skip-name-resolve"
     container_name: ecommerce_db
     restart: unless-stopped
     environment:
@@ -49,7 +49,7 @@ services:
 
   db_replica:
     image: mysql:8.0
-    command: --skip-name-resolve
+    command: sh -c "chmod 644 /etc/mysql/conf.d/replication.cnf && mysqld --skip-name-resolve"
     container_name: ecommerce_db_replica
     restart: unless-stopped
     environment:
@@ -84,6 +84,24 @@ services:
         condition: service_healthy
     networks:
       - ecommerce_network
+
+
+  replica-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ecommerce_replica_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: db_replica
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD}
+    depends_on:
+      db_replica:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
 
   inventory-service:
     build:

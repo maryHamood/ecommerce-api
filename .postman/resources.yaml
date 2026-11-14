@@ -1,0 +1,8 @@
+# Use this workspace to collaborate
+workspace:
+  id: 8745c40e-e6fc-4d98-813a-855e7068b82b
+
+localResources:
+  specs:
+    - ../protos/inventory.proto
+    - ../ecommerce-api/protos/inventory.proto

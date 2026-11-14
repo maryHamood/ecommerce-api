@@ -61,7 +61,8 @@ class ProductController extends Controller
 
         $products = Cache::remember($cacheKey, 60, function () use ($request) {
             $query = Product::with('category')
-                ->select('id', 'name', 'price', 'photo', 'category_id', 'created_at');
+                ->select('id', 'name', 'price', 'photo', 'category_id', 'created_at')
+                ->orderBy('id', 'asc');
 
             if ($request->filled('category_id')) {
                 $query->where('category_id', $request->input('category_id'));
