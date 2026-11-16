@@ -1,3 +1,4 @@
+
 services:
   app:
     build:
@@ -18,6 +19,8 @@ services:
         condition: service_started
       db_replica:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     extra_hosts:
       - "db:172.25.0.10"
       - "inventory-db:172.25.0.11"
@@ -85,7 +88,6 @@ services:
     networks:
       - ecommerce_network
 
-
   replica-phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: ecommerce_replica_phpmyadmin
@@ -101,7 +103,6 @@ services:
         condition: service_healthy
     networks:
       - ecommerce_network
-
 
   inventory-service:
     build:
@@ -163,6 +164,97 @@ services:
     networks:
       - ecommerce_network
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: ecommerce_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ecommerce_network
+
+  rabbitmq-email-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce_email_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "rabbitmq:consume", "ecommerce.order.created.email"]
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - ecommerce_network
+
+  rabbitmq-admin-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce_admin_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "rabbitmq:consume", "ecommerce.order.created.admin"]
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - ecommerce_network
+
+  rabbitmq-customer-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce_customer_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "rabbitmq:consume", "ecommerce.order.status_changed.customer"]
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - ecommerce_network
+
+  outbox-publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce_outbox_publisher
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command:
+      - /bin/sh
+      - -lc
+      - while true; do php artisan outbox:publish --limit=100 || true; sleep 2; done
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - ecommerce_network
+
 networks:
   ecommerce_network:
     driver: bridge
@@ -174,3 +266,4 @@ volumes:
   db_data:
   db_replica_data:
   inventory_data:
+  rabbitmq_data:

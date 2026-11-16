@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->decimal('total', 10, 2);
             $table->enum('status', ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'])->default('pending');
+            $table->timestamp('inventory_reserved_at')->nullable();
             $table->timestamps();
         });
     }

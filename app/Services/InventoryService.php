@@ -28,6 +28,13 @@ class InventoryService
         $request->setInitialQuantity($quantity);
 
         list($response, $status) = $this->client->InitInventory($request)->wait();
+
+        if ($status->code !== \Grpc\STATUS_OK) {
+            throw new \RuntimeException(
+                'gRPC initialization failed: ' . ($status->details ?? 'unknown error')
+            );
+        }
+
         return $response ? $response->getSuccess() : false;
     }
 
@@ -60,6 +67,13 @@ class InventoryService
         $request->setOrderId((string) $orderId);
 
         list($response, $status) = $this->client->ReleaseStock($request)->wait();
+
+        if ($status->code !== \Grpc\STATUS_OK) {
+            throw new \RuntimeException(
+                'gRPC release failed: ' . ($status->details ?? 'unknown error')
+            );
+        }
+
         return $response ? $response->getSuccess() : false;
     }
 
@@ -83,6 +97,13 @@ class InventoryService
         $request->setProductId((string) $productId);
 
         list($response, $status) = $this->client->DeleteInventory($request)->wait();
+
+        if ($status->code !== \Grpc\STATUS_OK) {
+            throw new \RuntimeException(
+                'gRPC deletion failed: ' . ($status->details ?? 'unknown error')
+            );
+        }
+
         return $response ? $response->getSuccess() : false;
     }
 }

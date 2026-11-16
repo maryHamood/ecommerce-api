@@ -73,6 +73,28 @@ return [
             'after_commit' => false,
         ],
 
+        'rabbitmq' => [
+            'driver' => 'rabbitmq',
+            'hosts' => [
+                [
+                    'host' => env('RABBITMQ_HOST', '127.0.0.1'),
+                    'port' => env('RABBITMQ_PORT', 5672),
+                    'user' => env('RABBITMQ_USER', 'guest'),
+                    'password' => env('RABBITMQ_PASSWORD', 'guest'),
+                    'vhost' => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+            'queue' => env('RABBITMQ_QUEUE', 'default'),
+            'options' => [
+                'heartbeat' => 30,
+                'connection_timeout' => 5,
+                'read_timeout' => 10,
+                'write_timeout' => 10,
+                'channel_rpc_timeout' => 5,
+            ],
+            'worker' => env('RABBITMQ_WORKER', 'default'),
+        ],
+
         'deferred' => [
             'driver' => 'deferred',
         ],

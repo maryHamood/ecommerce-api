@@ -22,6 +22,8 @@ RUN pecl install redis && docker-php-ext-enable redis
 
 RUN pecl install grpc && docker-php-ext-enable grpc
 
+RUN docker-php-ext-install sockets
+
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 

@@ -4,76 +4,87 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProductController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\RealtimeStreamController;
+use App\Http\Controllers\EmailVerificationController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 
-
+    // Authentication
     Route::prefix('auth')->group(function () {
-        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
-        Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,1');
-        Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:3,1');
-        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login');
+        Route::post('/register', [AuthController::class, 'register'])
+            ->middleware('throttle:5,1');
+
+        Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])
+            ->middleware('throttle:5,1');
+
+        Route::post('/resend-otp', [AuthController::class, 'resendOtp'])
+            ->middleware('throttle:3,1');
+
+        Route::post('/login', [AuthController::class, 'login'])
+            ->middleware('throttle:5,1')
+            ->name('login');
     });
 
+    // Authenticated routes
     Route::middleware(['auth:api'])->group(function () {
 
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+
         Route::get('/notifications', [NotificationController::class, 'index']);
-
-
-//        Route::get('/products', [ProductController::class, 'index']);
-//        Route::get('/products/{product}', [ProductController::class, 'show']);
         Route::get('/categories', [CategoryController::class, 'index']);
+
+        Route::put('/auth/email', [EmailVerificationController::class, 'updateEmail']);
+
+        Route::post('/auth/email/verification-notification', [EmailVerificationController::class, 'sendVerificationLink']);
     });
-// داخل Route::prefix('v1')->group(function () { ... })
+
+    // Public products
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
+
+    // Customer routes
     Route::middleware(['auth:api', 'role:customer'])->group(function () {
 
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/my-orders', [OrderController::class, 'myOrders']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+        // Customer real-time stream
+        Route::get('/customer/events/stream', [
+            RealtimeStreamController::class,
+            'customer'
+        ]);
     });
 
+    // Admin routes
+    Route::middleware(['auth:api', 'role:admin'])
+        ->prefix('admin')
+        ->group(function () {
 
-    Route::middleware(['auth:api', 'role:admin'])->prefix('admin')->group(function () {
+            Route::post('/products', [ProductController::class, 'store']);
+            Route::put('/products/{product}', [ProductController::class, 'update']);
+            Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 
+            Route::get('/orders', [OrderController::class, 'index']);
+            Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+            Route::post('/categories', [CategoryController::class, 'store']);
 
-        Route::post('/products', [ProductController::class, 'store']);
-        Route::put('/products/{product}', [ProductController::class, 'update']);
-        Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+            // Admin real-time stream
+            Route::get('/events/stream', [
+                RealtimeStreamController::class,
+                'admin'
+            ]);
+        });
 
-
-        Route::get('/orders', [OrderController::class, 'index']);
-        Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-        Route::post('/categories', [CategoryController::class, 'store']);
-    });
-
-//    Route::get('/test-queries', function () {
-//        \DB::enableQueryLog();
-//
-//
-//        $productsOld = \App\Models\Product::where('category_id', 1)->limit(10)->get();
-//        foreach ($productsOld as $product) {
-//            $categoryName = $product->category->name;
-//        }
-//        $oldQueries = count(\DB::getQueryLog());
-//
-//
-//        \DB::flushQueryLog();
-//        $productsNew = \App\Models\Product::with('category')->where('category_id', 1)->limit(10)->get();
-//        foreach ($productsNew as $product) {
-//            $categoryName = $product->category->name;
-//        }
-//        $newQueries = count(\DB::getQueryLog());
-//
-//        return response()->json([
-//            'old_queries' => $oldQueries,
-//            'new_queries' => $newQueries,
-//        ]);
-//    });
+    // Email verification
+    Route::get('/auth/email/verify/{user}/{hash}', [
+        EmailVerificationController::class,
+        'verify'
+    ])
+        ->middleware('signed')
+        ->name('verification.verify');
 
 });

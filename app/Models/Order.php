@@ -13,6 +13,11 @@ class Order extends Model
         'user_id',
         'total',
         'status',
+        'inventory_reserved_at',
+    ];
+
+    protected $casts = [
+        'inventory_reserved_at' => 'datetime',
     ];
 
     public function user()

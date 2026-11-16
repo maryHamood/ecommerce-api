@@ -33,6 +33,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->validated('password')),
             'iat'      => time(),
             'exp'      => time() + 300,
+            'email' => $request->validated('email'),
         ];
 
 
@@ -74,6 +75,8 @@ class AuthController extends Controller
                 'phone'    => $payload['phone'],
                 'password' => $payload['password'],
                 'role'     => 'customer',
+                'email' => $payload['email'] ?? null,
+                'email_verified_at' => null,
             ]);
 
 
