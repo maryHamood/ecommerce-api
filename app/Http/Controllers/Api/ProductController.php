@@ -91,48 +91,55 @@ class ProductController extends Controller
             ->header('ETag', $etag);
     }
 
-    public function store(StoreOrderRequest $request): JsonResponse
+
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        $total = 0;
-        $orderItems = [];
-        foreach ($request->items as $item) {
-            $product = \App\Models\Product::findOrFail($item['product_id']);
-            $total += $product->price * $item['quantity'];
-            $orderItems[] = [
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'price' => $product->price,
-            ];
+        $data = $request->validated();
+
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('products', 'public');
         }
 
-        $order = auth('api')->user()->orders()->create([
-            'total' => $total,
-            'status' => 'pending',
-        ]);
+        $initialStock = $data['initial_stock'];
+        unset($data['initial_stock']);
 
         try {
-            $isReserved = $this->inventoryService->reserveStock($order->id, $request->items);
+            $product = Product::create($data);
 
-            if (!$isReserved) {
-                $order->delete();
-                return ApiResponse::error('Insufficient stock for one or more items.', null, 400);
+            $initialized = $this->inventoryService->initInventory(
+                $product->id,
+                $initialStock
+            );
+
+            if (!$initialized) {
+                $product->delete();
+
+                return ApiResponse::error(
+                    'Failed to initialize product inventory.',
+                    null,
+                    500
+                );
             }
+
+            Cache::flush();
+
+            $product->amount = $initialStock;
+
+            return ApiResponse::success(
+                $product,
+                'Product created successfully.',
+                201
+            );
+
         } catch (\Throwable $e) {
-
-            $this->inventoryService->releaseStock($order->id);
-            $order->delete();
-            return ApiResponse::error('Inventory service is currently unavailable. Please try again later.', null, 503);
-        }
-
-        try {
-            $order->items()->createMany($orderItems);
-            return ApiResponse::success($order->load('items'), 'Order created successfully.', 201);
-        } catch (Exception $e) {
-            $this->inventoryService->releaseStock($order->id);
-            $order->delete();
-            return ApiResponse::error('Failed to create order, stock has been released.', null, 500);
+            return ApiResponse::error(
+                'Failed to create product.',
+                null,
+                500
+            );
         }
     }
+
 
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {

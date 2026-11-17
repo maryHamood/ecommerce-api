@@ -36,10 +36,9 @@ class RealtimeStreamController
             set_time_limit(0);
 
             $cursor = $lastId;
-            $startedAt = time();
             $lastHeartbeat = time();
 
-            while (! connection_aborted() && (time() - $startedAt) < 55) {
+            while (! connection_aborted()) {
                 // Read events in global ID order.
                 // Advance the cursor even for events this audience cannot see.
                 $events = RealtimeEvent::query()
